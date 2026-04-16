@@ -49,4 +49,6 @@ const App = () => {
   );
 };
 
+// sample line added for CI/CD check
+
 export default App;
