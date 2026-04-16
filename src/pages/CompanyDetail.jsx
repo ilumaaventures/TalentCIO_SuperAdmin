@@ -41,7 +41,7 @@ const CompanyDetail = () => {
                 </button>
                 <div>
                     <h1 className="text-3xl font-black text-slate-900 tracking-tight">{company.name}</h1>
-                    <p className="text-slate-500 font-medium">{company.subdomain}.talentcio.com</p>
+                    <p className="text-slate-500 font-medium">{company.subdomain}.talentcio.in</p>
                 </div>
             </div>
 

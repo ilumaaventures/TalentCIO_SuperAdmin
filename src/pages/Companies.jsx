@@ -57,7 +57,7 @@ const Companies = () => {
                     </div>
                     <div>
                         <div className="font-semibold text-slate-900">{row.name}</div>
-                        <div className="text-xs text-slate-500">{row.subdomain}{import.meta.env.VITE_MAIN_DOMAIN || '.talentcio.com'}</div>
+                        <div className="text-xs text-slate-500">{row.subdomain}{import.meta.env.VITE_MAIN_DOMAIN || '.talentcio.in'}</div>
                     </div>
                 </div>
             )
@@ -78,8 +78,8 @@ const Companies = () => {
             accessor: 'status',
             render: (row) => (
                 <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${row.status === 'Active' ? 'bg-green-100 text-green-800' :
-                        row.status === 'Suspended' ? 'bg-red-100 text-red-800' :
-                            'bg-yellow-100 text-yellow-800'
+                    row.status === 'Suspended' ? 'bg-red-100 text-red-800' :
+                        'bg-yellow-100 text-yellow-800'
                     }`}>
                     {row.status}
                 </span>
@@ -104,11 +104,10 @@ const Companies = () => {
                     </button>
                     <button
                         onClick={() => handleToggleStatus(row._id, row.status)}
-                        className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
-                            row.status === 'Active' 
-                            ? 'text-red-600 bg-red-50 hover:bg-red-100' 
-                            : 'text-emerald-600 bg-emerald-50 hover:bg-emerald-100'
-                        }`}
+                        className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${row.status === 'Active'
+                                ? 'text-red-600 bg-red-50 hover:bg-red-100'
+                                : 'text-emerald-600 bg-emerald-50 hover:bg-emerald-100'
+                            }`}
                     >
                         {row.status === 'Active' ? 'Suspend' : 'Resume'}
                     </button>

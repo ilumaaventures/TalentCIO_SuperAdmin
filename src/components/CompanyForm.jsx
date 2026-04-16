@@ -92,7 +92,7 @@ const CompanyForm = ({ isOpen, onClose, company = null, onSuccess }) => {
                                     <input required type="text" className="flex-1 min-w-0 border-slate-300 rounded-none rounded-l-lg focus:border-primary-500 focus:ring-primary-500"
                                         value={formData.subdomain} onChange={e => setFormData({ ...formData, subdomain: e.target.value })} disabled={!!company} placeholder="e.g. acme" />
                                     <span className="inline-flex items-center px-3 rounded-r-lg border border-l-0 border-slate-300 bg-slate-50 text-slate-500 text-sm">
-                                        {import.meta.env.VITE_MAIN_DOMAIN || '.talentcio.com'}
+                                        {import.meta.env.VITE_MAIN_DOMAIN || '.talentcio.in'}
                                     </span>
                                 </div>
                             </div>
