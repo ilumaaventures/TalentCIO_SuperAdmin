@@ -51,4 +51,6 @@ const App = () => {
 
 // sample line added for CI/CD check
 
+//added sample line2 for checking again
+
 export default App;
