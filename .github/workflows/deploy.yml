@@ -11,29 +11,32 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-      
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '20'
-      
+
       - name: Install dependencies
         run: npm ci
-      
+
       - name: Build project
         run: npm run build
-      
+        env:
+          VITE_API_BASE_URL: ${{ secrets.VITE_API_BASE_URL }}
+          VITE_MAIN_DOMAIN: ${{ secrets.VITE_MAIN_DOMAIN }}
+
       - name: Copy build to VPS
         uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.VPS_HOST }}
           username: ${{ secrets.VPS_USER }}
           key: ${{ secrets.VPS_SSH_KEY }}
-          source: "dist/"
+          source: "dist/*"
           target: "/var/www/talentcio/superadmin/"
-          strip_components: 0
-          # overwrite: true
-      
+          strip_components: 1
+          overwrite: true
+
       - name: Fix permissions and reload Nginx
         uses: appleboy/ssh-action@v0.1.10
         with:
@@ -41,6 +44,7 @@ jobs:
           username: ${{ secrets.VPS_USER }}
           key: ${{ secrets.VPS_SSH_KEY }}
           script: |
-            sudo chown -R www-data:www-data /var/www/talentcio/superadmin
-            sudo chmod -R 755 /var/www/talentcio/superadmin
+            sudo chown -R deploy:deploy /var/www/talentcio/superadmin
+            sudo find /var/www/talentcio/superadmin -type d -exec chmod 755 {} \;
+            sudo find /var/www/talentcio/superadmin -type f -exec chmod 644 {} \;
             sudo systemctl reload nginx
