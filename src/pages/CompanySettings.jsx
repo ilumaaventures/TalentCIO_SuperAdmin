@@ -34,6 +34,7 @@ const CompanySettings = () => {
             approvalCycle: 'Monthly',
             exportFormat: 'Standard',
             allowPastEntries: true,
+            requireAttachment: false,
         },
         excelImportFormat: 'default',
     });
@@ -330,6 +331,27 @@ const CompanySettings = () => {
                                         <option value="Combined">By User & Date</option>
                                     </select>
                                 </div>
+                            </div>
+                            <div className="pt-4 border-t border-slate-100">
+                                <label className="flex items-center gap-3 cursor-pointer group">
+                                    <div className="relative">
+                                        <input
+                                            type="checkbox"
+                                            className="sr-only"
+                                            checked={settings.timesheet.requireAttachment}
+                                            onChange={e => setSettings({ 
+                                                ...settings, 
+                                                timesheet: { ...settings.timesheet, requireAttachment: e.target.checked } 
+                                            })}
+                                        />
+                                        <div className={`w-10 h-6 rounded-full transition-colors ${settings.timesheet.requireAttachment ? 'bg-indigo-600' : 'bg-slate-300'}`}></div>
+                                        <div className={`absolute top-1 left-1 bg-white w-4 h-4 rounded-full transition-transform ${settings.timesheet.requireAttachment ? 'translate-x-4' : ''}`}></div>
+                                    </div>
+                                    <div>
+                                        <span className="text-sm font-bold text-slate-700 block">Enable Attendance Documents</span>
+                                        <span className="text-[10px] text-slate-400 italic">Allow users to upload supporting documents in the Attendance calendar</span>
+                                    </div>
+                                </label>
                             </div>
                         </div>
                     </div>
