@@ -45,12 +45,12 @@ const CompanySettings = () => {
             if (res.data.settings) {
                 // Merge loaded settings with default structure to avoid undefined errors
                 const loadedSettings = res.data.settings;
-                setSettings({
-                    ...settings,
+                setSettings(prev => ({
+                    ...prev,
                     ...loadedSettings,
-                    attendance: { ...settings.attendance, ...(loadedSettings.attendance || {}) },
-                    timesheet: { ...settings.timesheet, ...(loadedSettings.timesheet || {}) },
-                });
+                    attendance: { ...prev.attendance, ...(loadedSettings.attendance || {}) },
+                    timesheet: { ...prev.timesheet, ...(loadedSettings.timesheet || {}) },
+                }));
             }
             setLoading(false);
         }).catch(() => {
@@ -62,7 +62,8 @@ const CompanySettings = () => {
     const handleSave = async () => {
         setSaving(true);
         try {
-            await api.put(`/companies/${id}`, { settings });
+            const res = await api.put(`/companies/${id}`, { settings });
+            console.log('[handleSave] Server Response:', res.data);
             toast.success('Settings saved successfully');
         } catch (err) {
             toast.error('Failed to save settings');
