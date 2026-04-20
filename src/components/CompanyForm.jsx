@@ -3,6 +3,9 @@ import { X, Loader2 } from 'lucide-react';
 import api from '../api';
 import toast from 'react-hot-toast';
 
+
+//adding comment to check the CI/CD pipeline
+
 const CompanyForm = ({ isOpen, onClose, company = null, onSuccess }) => {
     const [loading, setLoading] = useState(false);
     const [formData, setFormData] = useState({
@@ -48,7 +51,7 @@ const CompanyForm = ({ isOpen, onClose, company = null, onSuccess }) => {
         e.preventDefault();
         setLoading(true);
         try {
-            const payload = { 
+            const payload = {
                 ...formData,
                 allowedDomains: formData.allowedDomains.split(',').map(d => d.trim()).filter(d => d !== '')
             };
@@ -144,12 +147,12 @@ const CompanyForm = ({ isOpen, onClose, company = null, onSuccess }) => {
                                     Allowed Email Domains
                                     <span className="text-[10px] font-normal text-slate-400 bg-slate-100 px-1.5 py-0.5 rounded italic">Security Policy</span>
                                 </label>
-                                <input 
-                                    type="text" 
+                                <input
+                                    type="text"
                                     placeholder="example.com, example.in (separate with commas)"
                                     className="w-full px-4 py-2.5 border border-slate-300 rounded-lg shadow-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/10 bg-white transition-all outline-none text-sm"
-                                    value={formData.allowedDomains} 
-                                    onChange={e => setFormData({ ...formData, allowedDomains: e.target.value })} 
+                                    value={formData.allowedDomains}
+                                    onChange={e => setFormData({ ...formData, allowedDomains: e.target.value })}
                                 />
                                 <p className="mt-1 text-xs text-slate-500">Only users with these email domains will be able to join this company. Leave empty for no restriction.</p>
                             </div>
