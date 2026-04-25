@@ -17,6 +17,9 @@ const CompanySettings = () => {
         leavePolicy: '',
         attendanceRules: '',
         overtimeRules: '',
+        careers: {
+            enableResourceGatewayPublishing: false,
+        },
         attendance: {
             weeklyOff: ['Saturday', 'Sunday'],
             workingHours: 8,
@@ -48,6 +51,7 @@ const CompanySettings = () => {
                 setSettings(prev => ({
                     ...prev,
                     ...loadedSettings,
+                    careers: { ...prev.careers, ...(loadedSettings.careers || {}) },
                     attendance: { ...prev.attendance, ...(loadedSettings.attendance || {}) },
                     timesheet: { ...prev.timesheet, ...(loadedSettings.timesheet || {}) },
                 }));
@@ -387,6 +391,37 @@ const CompanySettings = () => {
                             <h3>Global Settings</h3>
                         </div>
                         <div className="space-y-4">
+                            <div className="rounded-xl border border-emerald-100 bg-emerald-50/70 p-4">
+                                <div className="flex items-start justify-between gap-4">
+                                    <div>
+                                        <p className="text-xs font-bold uppercase tracking-wider text-emerald-700">Careers Distribution</p>
+                                        <h4 className="mt-1 text-sm font-semibold text-slate-800">Allow this company to publish jobs on Resource Gateway</h4>
+                                        <p className="mt-1 text-xs leading-5 text-slate-500">
+                                            When enabled, approved jobs from this company can also be pushed to `resourcegateway.in`
+                                            from the hiring request screen.
+                                        </p>
+                                    </div>
+                                    <label className="flex items-center gap-3 cursor-pointer group shrink-0">
+                                        <div className="relative">
+                                            <input
+                                                type="checkbox"
+                                                className="sr-only"
+                                                checked={settings.careers.enableResourceGatewayPublishing}
+                                                onChange={e => setSettings({
+                                                    ...settings,
+                                                    careers: {
+                                                        ...settings.careers,
+                                                        enableResourceGatewayPublishing: e.target.checked
+                                                    }
+                                                })}
+                                            />
+                                            <div className={`w-10 h-6 rounded-full transition-colors ${settings.careers.enableResourceGatewayPublishing ? 'bg-emerald-600' : 'bg-slate-300'}`}></div>
+                                            <div className={`absolute top-1 left-1 bg-white w-4 h-4 rounded-full transition-transform ${settings.careers.enableResourceGatewayPublishing ? 'translate-x-4' : ''}`}></div>
+                                        </div>
+                                    </label>
+                                </div>
+                            </div>
+
                             <div>
                                 <label className="block text-xs font-bold uppercase text-slate-500 mb-2">Import Format</label>
                                 <select
