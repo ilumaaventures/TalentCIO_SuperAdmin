@@ -1,8 +1,23 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import api from '../api';
-import { Save, ArrowLeft, Loader2, Clock, Calendar, FileSpreadsheet, CheckCircle2 } from 'lucide-react';
+import { Save, ArrowLeft, Loader2, Clock, Calendar, FileSpreadsheet, CheckCircle2, Plus, Trash2 } from 'lucide-react';
 import toast from 'react-hot-toast';
+
+const DEFAULT_ATTENDANCE_SHIFTS = [
+    { code: 'general', name: 'General', shiftType: 'general', startTime: '09:00', endTime: '18:00', maxWorkingHours: 9 },
+    { code: 'any', name: 'Any Time', shiftType: 'any', startTime: '00:00', endTime: '23:59', maxWorkingHours: 8 }
+];
+
+const DEFAULT_ATTENDANCE_SELF_SERVICE = {
+    weeklyOff: true,
+    workingHours: true,
+    defaultAttendanceMode: true,
+    attendanceShifts: true,
+    exportFormat: true,
+    locationRules: true,
+    ipRules: true
+};
 
 const CompanySettings = () => {
     const { id } = useParams();
@@ -23,6 +38,10 @@ const CompanySettings = () => {
         attendance: {
             weeklyOff: ['Saturday', 'Sunday'],
             workingHours: 8,
+            selfService: DEFAULT_ATTENDANCE_SELF_SERVICE,
+            defaultShiftCode: 'general',
+            defaultAttendanceMode: 'clock_in_out',
+            attendanceShifts: DEFAULT_ATTENDANCE_SHIFTS,
             exportFormat: 'Standard',
             halfDayAllowed: true,
             requireLocationCheckIn: false,
@@ -52,7 +71,17 @@ const CompanySettings = () => {
                     ...prev,
                     ...loadedSettings,
                     careers: { ...prev.careers, ...(loadedSettings.careers || {}) },
-                    attendance: { ...prev.attendance, ...(loadedSettings.attendance || {}) },
+                    attendance: {
+                        ...prev.attendance,
+                        ...(loadedSettings.attendance || {}),
+                        selfService: {
+                            ...prev.attendance.selfService,
+                            ...(loadedSettings.attendance?.selfService || {})
+                        },
+                        attendanceShifts: Array.isArray(loadedSettings.attendance?.attendanceShifts) && loadedSettings.attendance.attendanceShifts.length > 0
+                            ? loadedSettings.attendance.attendanceShifts
+                            : prev.attendance.attendanceShifts
+                    },
                     timesheet: { ...prev.timesheet, ...(loadedSettings.timesheet || {}) },
                 }));
             }
@@ -79,6 +108,46 @@ const CompanySettings = () => {
     if (loading) return <div className="flex h-full items-center justify-center"><Loader2 className="w-8 h-8 animate-spin text-primary-500" /></div>;
 
     const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+    const attendanceShifts = settings.attendance.attendanceShifts || DEFAULT_ATTENDANCE_SHIFTS;
+
+    const updateShift = (index, field, value) => {
+        const next = attendanceShifts.map((shift, shiftIndex) => (
+            shiftIndex === index ? { ...shift, [field]: value } : shift
+        ));
+        setSettings({ ...settings, attendance: { ...settings.attendance, attendanceShifts: next } });
+    };
+
+    const addShift = () => {
+        const next = [
+            ...attendanceShifts,
+            {
+                code: `shift-${attendanceShifts.length + 1}`,
+                name: `Shift ${attendanceShifts.length + 1}`,
+                shiftType: 'general',
+                startTime: '09:00',
+                endTime: '18:00',
+                maxWorkingHours: settings.attendance.workingHours || 8
+            }
+        ];
+        setSettings({ ...settings, attendance: { ...settings.attendance, attendanceShifts: next } });
+    };
+
+    const removeShift = (index) => {
+        const next = attendanceShifts.filter((_, shiftIndex) => shiftIndex !== index);
+        const fallback = next.length > 0 ? next : DEFAULT_ATTENDANCE_SHIFTS;
+        const nextDefaultShiftCode = fallback.some((shift) => shift.code === settings.attendance.defaultShiftCode)
+            ? settings.attendance.defaultShiftCode
+            : (fallback[0]?.code || 'general');
+
+        setSettings({
+            ...settings,
+            attendance: {
+                ...settings.attendance,
+                attendanceShifts: fallback,
+                defaultShiftCode: nextDefaultShiftCode
+            }
+        });
+    };
 
     return (
         <div className="space-y-6 animate-in fade-in duration-500 max-w-5xl mx-auto pb-12">
@@ -150,6 +219,17 @@ const CompanySettings = () => {
                                     </div>
                                 </div>
                                 <div>
+                                    <label className="block text-sm font-semibold text-slate-700 mb-2">Default Attendance Mode</label>
+                                    <select
+                                        className="w-full px-4 py-2 border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all font-medium"
+                                        value={settings.attendance.defaultAttendanceMode}
+                                        onChange={e => setSettings({ ...settings, attendance: { ...settings.attendance, defaultAttendanceMode: e.target.value } })}
+                                    >
+                                        <option value="clock_in_out">Clock In / Clock Out</option>
+                                        <option value="present_only">Mark Present Only</option>
+                                    </select>
+                                </div>
+                                <div>
                                     <label className="block text-sm font-semibold text-slate-700 mb-2">Excel Export Format</label>
                                     <select
                                         className="w-full px-4 py-2 border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all font-medium"
@@ -161,6 +241,111 @@ const CompanySettings = () => {
                                         <option value="Detailed">Detailed (With Location & IPs)</option>
                                         <option value="Compact">Compact (Summary only)</option>
                                     </select>
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-semibold text-slate-700 mb-2">Default Shift</label>
+                                    <select
+                                        className="w-full px-4 py-2 border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all font-medium"
+                                        value={settings.attendance.defaultShiftCode}
+                                        onChange={e => setSettings({ ...settings, attendance: { ...settings.attendance, defaultShiftCode: e.target.value } })}
+                                    >
+                                        {attendanceShifts.map((shift) => (
+                                            <option key={shift.code} value={shift.code}>{shift.name} ({shift.code})</option>
+                                        ))}
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div className="rounded-xl border border-slate-200 p-4 space-y-4">
+                                <div className="flex items-center justify-between gap-4">
+                                    <div>
+                                        <h4 className="text-sm font-bold text-slate-700">Shift Policies</h4>
+                                        <p className="text-xs text-slate-500 mt-1">Live company shift settings. If the company updates allowed fields, those updates will appear here too.</p>
+                                    </div>
+                                    <button
+                                        type="button"
+                                        onClick={addShift}
+                                        className="inline-flex items-center gap-2 rounded-lg border border-indigo-200 bg-indigo-50 px-3 py-2 text-sm font-semibold text-indigo-700 transition hover:bg-indigo-100"
+                                    >
+                                        <Plus size={16} />
+                                        Add Shift
+                                    </button>
+                                </div>
+
+                                <div className="space-y-3">
+                                    {attendanceShifts.map((shift, index) => (
+                                        <div key={`${shift.code}-${index}`} className="rounded-xl border border-slate-200 bg-slate-50/60 p-4">
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                <div>
+                                                    <label className="block text-[11px] font-bold uppercase text-slate-500 mb-1">Code</label>
+                                                    <input
+                                                        className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm"
+                                                        value={shift.code}
+                                                        onChange={e => updateShift(index, 'code', e.target.value.toLowerCase().replace(/[^a-z0-9_-]/g, '-'))}
+                                                    />
+                                                </div>
+                                                <div>
+                                                    <label className="block text-[11px] font-bold uppercase text-slate-500 mb-1">Name</label>
+                                                    <input
+                                                        className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm"
+                                                        value={shift.name}
+                                                        onChange={e => updateShift(index, 'name', e.target.value)}
+                                                    />
+                                                </div>
+                                                <div>
+                                                    <label className="block text-[11px] font-bold uppercase text-slate-500 mb-1">Type</label>
+                                                    <select
+                                                        className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm"
+                                                        value={shift.shiftType}
+                                                        onChange={e => updateShift(index, 'shiftType', e.target.value)}
+                                                    >
+                                                        <option value="general">General</option>
+                                                        <option value="any">Any Time</option>
+                                                    </select>
+                                                </div>
+                                                <div>
+                                                    <label className="block text-[11px] font-bold uppercase text-slate-500 mb-1">Max Working Hours</label>
+                                                    <input
+                                                        type="number"
+                                                        min="1"
+                                                        className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm"
+                                                        value={shift.maxWorkingHours}
+                                                        onChange={e => updateShift(index, 'maxWorkingHours', Number(e.target.value) || 1)}
+                                                    />
+                                                </div>
+                                                <div>
+                                                    <label className="block text-[11px] font-bold uppercase text-slate-500 mb-1">Start Time</label>
+                                                    <input
+                                                        type="time"
+                                                        className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm"
+                                                        value={shift.startTime}
+                                                        onChange={e => updateShift(index, 'startTime', e.target.value)}
+                                                        disabled={shift.shiftType === 'any'}
+                                                    />
+                                                </div>
+                                                <div>
+                                                    <label className="block text-[11px] font-bold uppercase text-slate-500 mb-1">End Time</label>
+                                                    <div className="flex items-center gap-2">
+                                                        <input
+                                                            type="time"
+                                                            className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm"
+                                                            value={shift.endTime}
+                                                            onChange={e => updateShift(index, 'endTime', e.target.value)}
+                                                            disabled={shift.shiftType === 'any'}
+                                                        />
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => removeShift(index)}
+                                                            className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-red-200 bg-white text-red-600 transition hover:bg-red-50"
+                                                            title="Remove shift"
+                                                        >
+                                                            <Trash2 size={16} />
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ))}
                                 </div>
                             </div>
 
@@ -391,6 +576,45 @@ const CompanySettings = () => {
                             <h3>Global Settings</h3>
                         </div>
                         <div className="space-y-4">
+                            <div className="rounded-xl border border-indigo-100 bg-indigo-50/70 p-4">
+                                <div>
+                                    <p className="text-xs font-bold uppercase tracking-wider text-indigo-700">Company Self-Service</p>
+                                    <h4 className="mt-1 text-sm font-semibold text-slate-800">Choose what the company admin can edit</h4>
+                                    <p className="mt-1 text-xs leading-5 text-slate-500">
+                                        These toggles control which attendance settings are editable from the company workspace. Locked fields stay visible there but become read-only.
+                                    </p>
+                                </div>
+                                <div className="mt-4 grid grid-cols-1 gap-3">
+                                    {[
+                                        ['weeklyOff', 'Weekly Off Days'],
+                                        ['workingHours', 'Working Hours'],
+                                        ['defaultAttendanceMode', 'Default Mode'],
+                                        ['attendanceShifts', 'Shift Policies'],
+                                        ['exportFormat', 'Export Format'],
+                                        ['locationRules', 'Location Rules'],
+                                        ['ipRules', 'IP Rules']
+                                    ].map(([key, label]) => (
+                                        <label key={key} className="flex items-center gap-3 rounded-lg border border-indigo-100 bg-white px-3 py-2 cursor-pointer">
+                                            <input
+                                                type="checkbox"
+                                                checked={settings.attendance.selfService?.[key]}
+                                                onChange={e => setSettings({
+                                                    ...settings,
+                                                    attendance: {
+                                                        ...settings.attendance,
+                                                        selfService: {
+                                                            ...settings.attendance.selfService,
+                                                            [key]: e.target.checked
+                                                        }
+                                                    }
+                                                })}
+                                            />
+                                            <span className="text-sm font-medium text-slate-700">{label}</span>
+                                        </label>
+                                    ))}
+                                </div>
+                            </div>
+
                             <div className="rounded-xl border border-emerald-100 bg-emerald-50/70 p-4">
                                 <div className="flex items-start justify-between gap-4">
                                     <div>
