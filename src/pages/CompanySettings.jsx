@@ -109,6 +109,7 @@ const CompanySettings = () => {
 
     const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
     const attendanceShifts = settings.attendance.attendanceShifts || DEFAULT_ATTENDANCE_SHIFTS;
+    const isPresentOnlyMode = settings.attendance.defaultAttendanceMode === 'present_only';
 
     const updateShift = (index, field, value) => {
         const next = attendanceShifts.map((shift, shiftIndex) => (
@@ -206,18 +207,20 @@ const CompanySettings = () => {
                             </div>
 
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <div>
-                                    <label className="block text-sm font-semibold text-slate-700 mb-2">Daily Working Hours</label>
-                                    <div className="relative">
-                                        <input
-                                            type="number"
-                                            className="w-full pl-4 pr-12 py-2 border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all font-medium"
-                                            value={settings.attendance.workingHours}
-                                            onChange={e => setSettings({ ...settings, attendance: { ...settings.attendance, workingHours: Number(e.target.value) } })}
-                                        />
-                                        <span className="absolute right-4 top-2 text-slate-400 text-sm">hrs</span>
+                                {!isPresentOnlyMode && (
+                                    <div>
+                                        <label className="block text-sm font-semibold text-slate-700 mb-2">Daily Working Hours</label>
+                                        <div className="relative">
+                                            <input
+                                                type="number"
+                                                className="w-full pl-4 pr-12 py-2 border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all font-medium"
+                                                value={settings.attendance.workingHours}
+                                                onChange={e => setSettings({ ...settings, attendance: { ...settings.attendance, workingHours: Number(e.target.value) } })}
+                                            />
+                                            <span className="absolute right-4 top-2 text-slate-400 text-sm">hrs</span>
+                                        </div>
                                     </div>
-                                </div>
+                                )}
                                 <div>
                                     <label className="block text-sm font-semibold text-slate-700 mb-2">Default Attendance Mode</label>
                                     <select

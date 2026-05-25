@@ -4,6 +4,19 @@ import api from '../api';
 import { ArrowLeft, Loader2, Save, Component } from 'lucide-react';
 import toast from 'react-hot-toast';
 
+const PROJECTS_MODULE_ID = 'projects';
+const PROJECT_DEPENDENCIES = ['businessUnits', 'clients'];
+
+const applyProjectDependencies = (moduleIds = []) => {
+    const enabledSet = new Set(moduleIds);
+
+    if (enabledSet.has(PROJECTS_MODULE_ID)) {
+        PROJECT_DEPENDENCIES.forEach((dependencyId) => enabledSet.add(dependencyId));
+    }
+
+    return Array.from(enabledSet);
+};
+
 const Modules = () => {
     const { id } = useParams();
     const navigate = useNavigate();
@@ -24,13 +37,38 @@ const Modules = () => {
     }, [id]);
 
     const handleToggle = (moduleId) => {
-        setModules(modules.map(m => m.id === moduleId ? { ...m, enabled: !m.enabled } : m));
+        const enabledSet = new Set(modules.filter((module) => module.enabled).map((module) => module.id));
+        const isCurrentlyEnabled = enabledSet.has(moduleId);
+
+        if (moduleId === PROJECTS_MODULE_ID) {
+            if (isCurrentlyEnabled) {
+                enabledSet.delete(PROJECTS_MODULE_ID);
+            } else {
+                enabledSet.add(PROJECTS_MODULE_ID);
+                PROJECT_DEPENDENCIES.forEach((dependencyId) => enabledSet.add(dependencyId));
+            }
+        } else {
+            if (isCurrentlyEnabled) {
+                enabledSet.delete(moduleId);
+                if (PROJECT_DEPENDENCIES.includes(moduleId)) {
+                    enabledSet.delete(PROJECTS_MODULE_ID);
+                }
+            } else {
+                enabledSet.add(moduleId);
+            }
+        }
+
+        const nextEnabledModules = applyProjectDependencies(Array.from(enabledSet));
+        setModules(modules.map((module) => ({
+            ...module,
+            enabled: nextEnabledModules.includes(module.id)
+        })));
     };
 
     const handleSave = async () => {
         setSaving(true);
         try {
-            const enabledModules = modules.filter(m => m.enabled).map(m => m.id);
+            const enabledModules = applyProjectDependencies(modules.filter(m => m.enabled).map(m => m.id));
             await api.put(`/companies/${id}/modules`, { enabledModules });
             toast.success('Module configuration saved');
         } catch (err) {
