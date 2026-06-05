@@ -2,6 +2,7 @@ import React, { createContext, useContext, useEffect, useRef, useState } from 'r
 import api, { SUPER_ADMIN_TOKEN_KEY } from '../api';
 
 const AuthContext = createContext();
+const normalizeEmail = (value = '') => String(value).trim().toLowerCase();
 
 export const AuthProvider = ({ children }) => {
     const [admin, setAdmin] = useState(null);
@@ -32,7 +33,12 @@ export const AuthProvider = ({ children }) => {
     const login = async (email, password) => {
         const requestId = authRequestIdRef.current + 1;
         authRequestIdRef.current = requestId;
-        const { data } = await api.post('/auth/login', { email, password });
+        sessionStorage.removeItem(SUPER_ADMIN_TOKEN_KEY);
+
+        const { data } = await api.post('/auth/login', {
+            email: normalizeEmail(email),
+            password,
+        });
         if (data?.token) {
             sessionStorage.setItem(SUPER_ADMIN_TOKEN_KEY, data.token);
         }

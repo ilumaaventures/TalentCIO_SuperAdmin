@@ -2,6 +2,7 @@ import axios from 'axios';
 
 const SUPER_ADMIN_TOKEN_KEY = 'talentcio_superadmin_access_token';
 const DEFAULT_API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000';
+const LOGIN_ROUTE = '/login';
 
 const resolveApiBaseUrl = (rawUrl) => {
     if (typeof window === 'undefined' || !rawUrl) {
@@ -44,15 +45,27 @@ api.interceptors.request.use((config) => {
     return config;
 });
 
+const isAuthSessionRequest = (requestUrl = '') => (
+    requestUrl.includes('/auth/me') || requestUrl.includes('/auth/logout')
+);
+
+const isLoginRoute = () => (
+    typeof window !== 'undefined'
+    && window.location.pathname === LOGIN_ROUTE
+);
+
 api.interceptors.response.use(
     (response) => response,
     (error) => {
         const requestUrl = String(error.config?.url || '');
-        const isAuthSessionRequest = requestUrl.includes('/auth/me') || requestUrl.includes('/auth/logout');
-        if (error.response?.status === 401 && isAuthSessionRequest) {
+        if (error.response?.status === 401 && isAuthSessionRequest(requestUrl)) {
             sessionStorage.removeItem(SUPER_ADMIN_TOKEN_KEY);
-            window.location.href = '/login';
+
+            if (!isLoginRoute()) {
+                window.location.replace(LOGIN_ROUTE);
+            }
         }
+
         return Promise.reject(error);
     }
 );

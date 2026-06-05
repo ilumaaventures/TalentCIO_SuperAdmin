@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useEffect, useState } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { Lock, Mail, Loader2, Eye, EyeOff } from 'lucide-react';
 import toast from 'react-hot-toast';
@@ -9,15 +9,24 @@ const Login = () => {
     const [password, setPassword] = useState('');
     const [loading, setLoading] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
-    const { login } = useAuth();
+    const { admin, login } = useAuth();
     const navigate = useNavigate();
+    const location = useLocation();
+    const redirectTo = location.state?.from?.pathname || '/';
+
+    useEffect(() => {
+        if (admin) {
+            navigate(redirectTo, { replace: true });
+        }
+    }, [admin, navigate, redirectTo]);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        if (loading) return;
         setLoading(true);
         try {
             await login(email, password);
-            navigate('/');
+            navigate(redirectTo, { replace: true });
         } catch (err) {
             toast.error(err.response?.data?.message || 'Login failed');
         } finally {

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import api from '../api';
-import { Save, ArrowLeft, Loader2, Clock, Calendar, FileSpreadsheet, CheckCircle2, Plus, Trash2 } from 'lucide-react';
+import { Save, ArrowLeft, Loader2, Clock, Calendar, FileSpreadsheet, CheckCircle2, Plus, Trash2, ShieldCheck, RefreshCw, Copy } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 const DEFAULT_ATTENDANCE_SHIFTS = [
@@ -17,6 +17,29 @@ const DEFAULT_ATTENDANCE_SELF_SERVICE = {
     exportFormat: true,
     locationRules: true,
     ipRules: true
+};
+
+const DEFAULT_PAYROLL_INTEGRATION = {
+    enabled: false,
+    externalTenantId: '',
+    accessToken: '',
+    encryptPayloads: false,
+    encryptionSecret: '',
+    webhookUrl: '',
+    webhookSecret: ''
+};
+
+const generateSecretValue = (length = 48) => {
+    const alphabet = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789';
+    const cryptoApi = globalThis.crypto;
+
+    if (cryptoApi?.getRandomValues) {
+        const bytes = new Uint8Array(length);
+        cryptoApi.getRandomValues(bytes);
+        return Array.from(bytes, (byte) => alphabet[byte % alphabet.length]).join('');
+    }
+
+    return Array.from({ length }, () => alphabet[Math.floor(Math.random() * alphabet.length)]).join('');
 };
 
 const CompanySettings = () => {
@@ -58,6 +81,7 @@ const CompanySettings = () => {
             allowPastEntries: true,
             requireAttachment: false,
         },
+        payrollIntegration: DEFAULT_PAYROLL_INTEGRATION,
         excelImportFormat: 'default',
     });
 
@@ -83,6 +107,7 @@ const CompanySettings = () => {
                             : prev.attendance.attendanceShifts
                     },
                     timesheet: { ...prev.timesheet, ...(loadedSettings.timesheet || {}) },
+                    payrollIntegration: { ...prev.payrollIntegration, ...(loadedSettings.payrollIntegration || {}) },
                 }));
             }
             setLoading(false);
@@ -110,6 +135,40 @@ const CompanySettings = () => {
     const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
     const attendanceShifts = settings.attendance.attendanceShifts || DEFAULT_ATTENDANCE_SHIFTS;
     const isPresentOnlyMode = settings.attendance.defaultAttendanceMode === 'present_only';
+    const payrollIntegration = settings.payrollIntegration || DEFAULT_PAYROLL_INTEGRATION;
+    const apiBaseUrl = (import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000').replace(/\/$/, '');
+    const employeeSyncUrl = `${apiBaseUrl}/api/v1/employees?tenantId=${encodeURIComponent(payrollIntegration.externalTenantId || 'your-tenant-id')}`;
+    const attendanceSyncUrl = `${apiBaseUrl}/api/v1/attendance?tenantId=${encodeURIComponent(payrollIntegration.externalTenantId || 'your-tenant-id')}&month=6&year=2026`;
+
+    const updatePayrollIntegration = (field, value) => {
+        setSettings({
+            ...settings,
+            payrollIntegration: {
+                ...payrollIntegration,
+                [field]: value
+            }
+        });
+    };
+
+    const generatePayrollSecret = (field, length = 48) => {
+        const nextValue = generateSecretValue(length);
+        updatePayrollIntegration(field, nextValue);
+        toast.success(`${field} generated`);
+    };
+
+    const copyToClipboard = async (label, value) => {
+        if (!value) {
+            toast.error(`No ${label.toLowerCase()} to copy`);
+            return;
+        }
+
+        try {
+            await navigator.clipboard.writeText(value);
+            toast.success(`${label} copied`);
+        } catch {
+            toast.error(`Failed to copy ${label.toLowerCase()}`);
+        }
+    };
 
     const updateShift = (index, field, value) => {
         const next = attendanceShifts.map((shift, shiftIndex) => (
@@ -545,6 +604,197 @@ const CompanySettings = () => {
                                         <span className="text-[10px] text-slate-400 italic">Allow users to upload supporting documents in the Attendance calendar</span>
                                     </div>
                                 </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+                        <div className="p-6 border-b border-slate-100 bg-slate-50/50 flex items-center gap-2">
+                            <ShieldCheck className="text-emerald-600" size={20} />
+                            <h3 className="font-bold text-slate-800">Payroll Integration</h3>
+                        </div>
+                        <div className="p-6 space-y-6">
+                            <div className="flex flex-col gap-5 rounded-2xl border border-emerald-100 bg-gradient-to-br from-emerald-50 via-white to-emerald-50/80 p-5 md:flex-row md:items-start md:justify-between">
+                                <div className="max-w-2xl">
+                                    <p className="text-xs font-bold uppercase tracking-wider text-emerald-700">Flance / MyBill Sync</p>
+                                    <h4 className="mt-1 text-lg font-semibold leading-7 text-slate-900">Enable secure employee and attendance sync</h4>
+                                    <p className="mt-2 text-sm leading-6 text-slate-600">
+                                        This controls the `/api/v1/employees` and `/api/v1/attendance` endpoints plus outbound payroll webhooks for employee updates.
+                                    </p>
+                                </div>
+                                <label className="flex items-center gap-3 self-start rounded-full border border-emerald-100 bg-white/90 px-3 py-2 shadow-sm cursor-pointer group shrink-0">
+                                    <div className="relative">
+                                        <input
+                                            type="checkbox"
+                                            className="sr-only"
+                                            checked={payrollIntegration.enabled}
+                                            onChange={e => updatePayrollIntegration('enabled', e.target.checked)}
+                                        />
+                                        <div className={`w-10 h-6 rounded-full transition-colors ${payrollIntegration.enabled ? 'bg-emerald-600' : 'bg-slate-300'}`}></div>
+                                        <div className={`absolute top-1 left-1 bg-white w-4 h-4 rounded-full transition-transform ${payrollIntegration.enabled ? 'translate-x-4' : ''}`}></div>
+                                    </div>
+                                </label>
+                            </div>
+
+                            <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+                                <div>
+                                    <label className="block text-sm font-semibold text-slate-700 mb-2">External Tenant ID</label>
+                                    <input
+                                        type="text"
+                                        className="w-full rounded-xl border border-slate-200 px-4 py-3 text-sm font-medium text-slate-800 placeholder:text-slate-400 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500 transition-all"
+                                        placeholder="e.g. flance-tenant-001"
+                                        value={payrollIntegration.externalTenantId}
+                                        onChange={e => updatePayrollIntegration('externalTenantId', e.target.value)}
+                                    />
+                                    <p className="mt-2 text-xs leading-5 text-slate-500">Must match the `tenantId` query param Flance sends.</p>
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-semibold text-slate-700 mb-2">Webhook URL</label>
+                                    <input
+                                        type="url"
+                                        className="w-full rounded-xl border border-slate-200 px-4 py-3 text-sm font-medium text-slate-800 placeholder:text-slate-400 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500 transition-all"
+                                        placeholder="https://your-flance-domain/api/payroll/integration/webhook"
+                                        value={payrollIntegration.webhookUrl}
+                                        onChange={e => updatePayrollIntegration('webhookUrl', e.target.value)}
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+                                <div>
+                                    <label className="block text-sm font-semibold text-slate-700 mb-2">Access Token</label>
+                                    <div className="space-y-3">
+                                        <input
+                                            type="password"
+                                            className="w-full rounded-xl border border-slate-200 px-4 py-3 font-mono text-sm text-slate-800 placeholder:text-slate-400 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500 transition-all"
+                                            placeholder="Bearer token used by Flance"
+                                            value={payrollIntegration.accessToken}
+                                            onChange={e => updatePayrollIntegration('accessToken', e.target.value)}
+                                        />
+                                        <div className="flex flex-wrap gap-2">
+                                            <button
+                                                type="button"
+                                                onClick={() => generatePayrollSecret('accessToken', 56)}
+                                                className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-2 text-sm font-semibold text-emerald-700 transition hover:bg-emerald-100"
+                                            >
+                                                <RefreshCw size={14} />
+                                                Generate
+                                            </button>
+                                            <button
+                                                type="button"
+                                                onClick={() => copyToClipboard('Access token', payrollIntegration.accessToken)}
+                                                className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
+                                            >
+                                                <Copy size={14} />
+                                                Copy
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-semibold text-slate-700 mb-2">Webhook Secret</label>
+                                    <div className="space-y-3">
+                                        <input
+                                            type="password"
+                                            className="w-full rounded-xl border border-slate-200 px-4 py-3 font-mono text-sm text-slate-800 placeholder:text-slate-400 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500 transition-all"
+                                            placeholder="HMAC secret for x-hrms-signature"
+                                            value={payrollIntegration.webhookSecret}
+                                            onChange={e => updatePayrollIntegration('webhookSecret', e.target.value)}
+                                        />
+                                        <div className="flex flex-wrap gap-2">
+                                            <button
+                                                type="button"
+                                                onClick={() => generatePayrollSecret('webhookSecret', 56)}
+                                                className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-2 text-sm font-semibold text-emerald-700 transition hover:bg-emerald-100"
+                                            >
+                                                <RefreshCw size={14} />
+                                                Generate
+                                            </button>
+                                            <button
+                                                type="button"
+                                                onClick={() => copyToClipboard('Webhook secret', payrollIntegration.webhookSecret)}
+                                                className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
+                                            >
+                                                <Copy size={14} />
+                                                Copy
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="rounded-2xl border border-slate-200 bg-white p-5 space-y-4">
+                                <label className="flex items-start gap-4 cursor-pointer group">
+                                    <div className="relative mt-0.5">
+                                        <input
+                                            type="checkbox"
+                                            className="sr-only"
+                                            checked={payrollIntegration.encryptPayloads}
+                                            onChange={e => updatePayrollIntegration('encryptPayloads', e.target.checked)}
+                                        />
+                                        <div className={`w-10 h-6 rounded-full transition-colors ${payrollIntegration.encryptPayloads ? 'bg-emerald-600' : 'bg-slate-300'}`}></div>
+                                        <div className={`absolute top-1 left-1 bg-white w-4 h-4 rounded-full transition-transform ${payrollIntegration.encryptPayloads ? 'translate-x-4' : ''}`}></div>
+                                    </div>
+                                    <div className="min-w-0">
+                                        <span className="text-base font-bold text-slate-800 block">Encrypt sync responses</span>
+                                        <span className="mt-1 block text-xs leading-5 text-slate-500 italic">Uses AES-256-GCM with PBKDF2-SHA256 key derivation.</span>
+                                    </div>
+                                </label>
+
+                                {payrollIntegration.encryptPayloads && (
+                                    <div className="grid grid-cols-1 gap-3 border-l-2 border-emerald-100 pl-4 animate-in slide-in-from-left duration-300">
+                                        <div>
+                                            <label className="block text-sm font-semibold text-slate-700 mb-2">Encryption Secret</label>
+                                            <div className="space-y-3">
+                                                <input
+                                                    type="password"
+                                                    className="w-full rounded-xl border border-slate-200 px-4 py-3 font-mono text-sm text-slate-800 placeholder:text-slate-400 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500 transition-all"
+                                                    placeholder="Shared secret used to encrypt payloads"
+                                                    value={payrollIntegration.encryptionSecret}
+                                                    onChange={e => updatePayrollIntegration('encryptionSecret', e.target.value)}
+                                                />
+                                                <div className="flex flex-wrap gap-2">
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => generatePayrollSecret('encryptionSecret', 56)}
+                                                        className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-2 text-sm font-semibold text-emerald-700 transition hover:bg-emerald-100"
+                                                    >
+                                                        <RefreshCw size={14} />
+                                                        Generate
+                                                    </button>
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => copyToClipboard('Encryption secret', payrollIntegration.encryptionSecret)}
+                                                        className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
+                                                    >
+                                                        <Copy size={14} />
+                                                        Copy
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+
+                            <div className="rounded-2xl border border-slate-200 bg-slate-50/80 p-5">
+                                <div className="mb-4 flex items-center gap-2">
+                                    <FileSpreadsheet size={16} className="text-slate-600" />
+                                    <h4 className="text-sm font-bold text-slate-800">Integration Preview</h4>
+                                </div>
+                                <div className="space-y-4 text-xs">
+                                    <div>
+                                        <p className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-slate-500">Employee Sync Endpoint</p>
+                                        <code className="block overflow-x-auto rounded-xl bg-slate-900 px-3 py-3 font-mono text-[13px] text-emerald-300">{employeeSyncUrl}</code>
+                                    </div>
+                                    <div>
+                                        <p className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-slate-500">Attendance Sync Endpoint</p>
+                                        <code className="block overflow-x-auto rounded-xl bg-slate-900 px-3 py-3 font-mono text-[13px] text-emerald-300">{attendanceSyncUrl}</code>
+                                    </div>
+                                    <p className="text-sm leading-6 text-slate-600">
+                                        Flance should call these with <code className="rounded bg-white px-1.5 py-0.5 font-mono text-[13px] text-slate-700">Authorization: Bearer {'{accessToken}'}</code>. Employee create, update, activate, and deactivate events will be pushed to the webhook URL above.
+                                    </p>
+                                </div>
                             </div>
                         </div>
                     </div>
