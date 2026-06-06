@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import api from '../api';
-import { Building2, Mail, Phone, MapPin, Globe, Loader2, ArrowLeft, Settings, Activity, Component } from 'lucide-react';
+import { Building2, Mail, Phone, MapPin, Globe, Loader2, ArrowLeft, Settings, Activity, Component, ShieldCheck } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 const CompanyDetail = () => {
@@ -32,6 +32,9 @@ const CompanyDetail = () => {
 
     if (loading) return <div className="flex h-full items-center justify-center"><Loader2 className="w-8 h-8 flex items-center animate-spin text-primary-500" /></div>;
     if (!company) return null;
+
+    const payrollIntegration = company.settings?.payrollIntegration || {};
+    const isPayrollEnabled = payrollIntegration.enabled === true;
 
     return (
         <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
@@ -84,6 +87,33 @@ const CompanyDetail = () => {
                             <div className="bg-slate-50 p-6 rounded-2xl border border-slate-100 group hover:bg-indigo-600 transition-all duration-300">
                                 <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest group-hover:text-indigo-100">Enabled Services</p>
                                 <p className="text-3xl font-black text-slate-800 mt-2 group-hover:text-white transition-colors">{company.enabledModules?.length || 0}</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="bg-white rounded-[32px] shadow-sm border border-slate-100 p-10">
+                        <h3 className="text-xl font-black text-slate-800 mb-8 flex items-center gap-3">
+                            <ShieldCheck className="text-emerald-500" size={24} strokeWidth={2.5} /> Payroll Integration
+                        </h3>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-y-8 gap-x-12">
+                            <div>
+                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5">Sync Status</p>
+                                <span className={`inline-flex items-center px-4 py-1 rounded-full text-[10px] font-black uppercase tracking-wider mt-2 ${isPayrollEnabled ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' : 'bg-slate-100 text-slate-600 border border-slate-200'}`}>
+                                    <span className={`w-1.5 h-1.5 rounded-full mr-2 ${isPayrollEnabled ? 'bg-emerald-500' : 'bg-slate-400'}`}></span>
+                                    {isPayrollEnabled ? 'Enabled' : 'Disabled'}
+                                </span>
+                            </div>
+                            <div>
+                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5">External Tenant ID</p>
+                                <p className="text-sm font-bold text-slate-800">{payrollIntegration.externalTenantId || 'Not configured'}</p>
+                            </div>
+                            <div>
+                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5">Payload Encryption</p>
+                                <p className="text-sm font-bold text-slate-800">{payrollIntegration.encryptPayloads ? 'Enabled' : 'Disabled'}</p>
+                            </div>
+                            <div>
+                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5">Webhook URL</p>
+                                <p className="text-sm font-bold text-slate-800 break-all">{payrollIntegration.webhookUrl || 'Not configured'}</p>
                             </div>
                         </div>
                     </div>
