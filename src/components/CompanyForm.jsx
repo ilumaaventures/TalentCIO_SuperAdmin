@@ -60,6 +60,7 @@ const CompanyForm = ({ isOpen, onClose, company = null, onSuccess }) => {
             }
 
             if (company) {
+                delete payload.subdomain; // subdomain is immutable after creation
                 await api.put(`/companies/${company._id}`, payload);
                 toast.success('Company updated successfully');
             } else {
