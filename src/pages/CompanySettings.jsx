@@ -69,6 +69,7 @@ const CompanySettings = () => {
             halfDayAllowed: true,
             requireLocationCheckIn: false,
             requireLocationCheckOut: false,
+            requireLocationTimesheet: false,
             locationCheck: false,
             ipCheck: false,
             allowedRadius: 200,
@@ -443,6 +444,20 @@ const CompanySettings = () => {
                                                 <div className={`absolute top-1 left-1 bg-white w-4 h-4 rounded-full transition-transform ${settings.attendance.requireLocationCheckOut ? 'translate-x-4' : ''}`}></div>
                                             </div>
                                             <span className="text-sm font-medium text-slate-700">Require Location for Check-out</span>
+                                        </label>
+
+                                        <label className="flex items-center gap-3 cursor-pointer group">
+                                            <div className="relative">
+                                                <input
+                                                    type="checkbox"
+                                                    className="sr-only"
+                                                    checked={settings.attendance.requireLocationTimesheet}
+                                                    onChange={e => setSettings({ ...settings, attendance: { ...settings.attendance, requireLocationTimesheet: e.target.checked } })}
+                                                />
+                                                <div className={`w-10 h-6 rounded-full transition-colors ${settings.attendance.requireLocationTimesheet ? 'bg-indigo-600' : 'bg-slate-300'}`}></div>
+                                                <div className={`absolute top-1 left-1 bg-white w-4 h-4 rounded-full transition-transform ${settings.attendance.requireLocationTimesheet ? 'translate-x-4' : ''}`}></div>
+                                            </div>
+                                            <span className="text-sm font-medium text-slate-700">Require Location when Submitting from Timesheet</span>
                                         </label>
 
                                         <label className="flex items-center gap-3 cursor-pointer group">
