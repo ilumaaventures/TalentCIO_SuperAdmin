@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, Loader2 } from 'lucide-react';
+import { X, Loader2, Eye, EyeOff } from 'lucide-react';
 import api from '../api';
 import toast from 'react-hot-toast';
 
@@ -18,6 +18,7 @@ const CompanyForm = ({ isOpen, onClose, company = null, onSuccess }) => {
     const [adminData, setAdminData] = useState({
         firstName: '', lastName: '', email: '', password: ''
     });
+    const [showPassword, setShowPassword] = useState(false);
 
     useEffect(() => {
         if (isOpen) {
@@ -43,6 +44,7 @@ const CompanyForm = ({ isOpen, onClose, company = null, onSuccess }) => {
                 });
                 setCreateAdmin(false);
                 setAdminData({ firstName: '', lastName: '', email: '', password: '' });
+                setShowPassword(false);
             }
         }
     }, [isOpen, company]);
@@ -180,8 +182,17 @@ const CompanyForm = ({ isOpen, onClose, company = null, onSuccess }) => {
                                         </div>
                                         <div>
                                             <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Admin Password *</label>
-                                            <input required type="password" title="At least 6 characters" className="w-full px-4 py-2.5 border border-slate-300 rounded-lg shadow-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/10 bg-white transition-all outline-none text-sm"
-                                                value={adminData.password} onChange={e => setAdminData({ ...adminData, password: e.target.value })} minLength={6} />
+                                            <div className="relative">
+                                                <input required type={showPassword ? 'text' : 'password'} title="At least 6 characters" className="w-full pl-4 pr-10 py-2.5 border border-slate-300 rounded-lg shadow-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/10 bg-white transition-all outline-none text-sm"
+                                                    value={adminData.password} onChange={e => setAdminData({ ...adminData, password: e.target.value })} minLength={6} />
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setShowPassword(!showPassword)}
+                                                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors p-1 rounded-md"
+                                                >
+                                                    {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                                                </button>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
