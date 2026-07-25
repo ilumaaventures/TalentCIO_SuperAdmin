@@ -75,6 +75,17 @@ const CompanySettings = () => {
             allowedRadius: 200,
             coordinates: { lat: 0, lng: 0 },
             allowedIps: [],
+            flexWeeklyOff: {
+                enabled: false,
+                allowedDay: 'Custom (Employee Chooses)',
+                allowedDays: ['Custom (Employee Chooses)'],
+                allowedCount: 2,
+                targetRoles: [],
+                targetEmploymentTypes: [],
+                targetUserIds: [],
+                rolePolicies: [],
+                employmentTypePolicies: []
+            }
         },
         timesheet: {
             approvalCycle: 'Monthly',
@@ -102,6 +113,10 @@ const CompanySettings = () => {
                         selfService: {
                             ...prev.attendance.selfService,
                             ...(loadedSettings.attendance?.selfService || {})
+                        },
+                        flexWeeklyOff: {
+                            ...prev.attendance.flexWeeklyOff,
+                            ...(loadedSettings.attendance?.flexWeeklyOff || {})
                         },
                         attendanceShifts: Array.isArray(loadedSettings.attendance?.attendanceShifts) && loadedSettings.attendance.attendanceShifts.length > 0
                             ? loadedSettings.attendance.attendanceShifts
@@ -458,6 +473,29 @@ const CompanySettings = () => {
                                                 <div className={`absolute top-1 left-1 bg-white w-4 h-4 rounded-full transition-transform ${settings.attendance.requireLocationTimesheet ? 'translate-x-4' : ''}`}></div>
                                             </div>
                                             <span className="text-sm font-medium text-slate-700">Require Location when Submitting from Timesheet</span>
+                                        </label>
+
+                                        <label className="flex items-center gap-3 cursor-pointer group">
+                                            <div className="relative">
+                                                <input
+                                                    type="checkbox"
+                                                    className="sr-only"
+                                                    checked={Boolean(settings.attendance?.flexWeeklyOff?.enabled)}
+                                                    onChange={e => setSettings({
+                                                        ...settings,
+                                                        attendance: {
+                                                            ...settings.attendance,
+                                                            flexWeeklyOff: {
+                                                                ...(settings.attendance?.flexWeeklyOff || {}),
+                                                                enabled: e.target.checked
+                                                            }
+                                                        }
+                                                    })}
+                                                />
+                                                <div className={`w-10 h-6 rounded-full transition-colors ${settings.attendance?.flexWeeklyOff?.enabled ? 'bg-indigo-600' : 'bg-slate-300'}`}></div>
+                                                <div className={`absolute top-1 left-1 bg-white w-4 h-4 rounded-full transition-transform ${settings.attendance?.flexWeeklyOff?.enabled ? 'translate-x-4' : ''}`}></div>
+                                            </div>
+                                            <span className="text-sm font-medium text-slate-700">Enable Flexible Off Setting</span>
                                         </label>
 
                                         <label className="flex items-center gap-3 cursor-pointer group">
