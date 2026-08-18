@@ -117,8 +117,7 @@ const Users = () => {
             header: 'Actions',
             accessor: '_id',
             render: (row) => {
-                const isPrivileged = row.role === 'Admin' || row.role === 'Super Admin' || row.role === 'System Admin' || !row.companyId;
-                const canImpersonateThisUser = canImpersonate && row.status === 'Active' && !isPrivileged;
+                const canImpersonateThisUser = canImpersonate && row.status === 'Active' && Boolean(row.companyId);
 
                 return (
                     <div className="flex items-center gap-2">
