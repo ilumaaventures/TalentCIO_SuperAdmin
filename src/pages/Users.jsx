@@ -1,10 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import api from '../api';
+import { useAuth } from '../context/AuthContext';
 import DataTable from '../components/DataTable';
-import { Search, Users as UsersIcon, Building2 } from 'lucide-react';
+import ImpersonateModal from '../components/ImpersonateModal';
+import { Search, Users as UsersIcon, Building2, UserCheck } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 const Users = () => {
+    const { admin } = useAuth();
     const [users, setUsers] = useState([]);
     const [loading, setLoading] = useState(true);
     const [page, setPage] = useState(1);
@@ -12,6 +15,12 @@ const Users = () => {
     const [search, setSearch] = useState('');
     const [filterCompany, setFilterCompany] = useState('');
     const [companies, setCompanies] = useState([]);
+    const [impersonateTargetUser, setImpersonateTargetUser] = useState(null);
+    const [showImpersonateModal, setShowImpersonateModal] = useState(false);
+
+    const canImpersonate = Boolean(
+        admin?.role === 'Super Admin' || admin?.permissions?.impersonateUsers
+    );
 
     const fetchUsers = async () => {
         setLoading(true);
@@ -107,23 +116,41 @@ const Users = () => {
         {
             header: 'Actions',
             accessor: '_id',
-            render: (row) => (
-                <div className="flex items-center gap-2">
-                     <button
-                        onClick={() => handleDeactivate(row._id, row.status)}
-                        className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
-                            row.status === 'Active' 
-                            ? 'text-red-600 bg-red-50 hover:bg-red-100' 
-                            : 'text-emerald-600 bg-emerald-50 hover:bg-emerald-100'
-                        }`}
-                    >
-                        {row.status === 'Active' ? 'Deactivate' : 'Activate'}
-                    </button>
-                    <button className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg transition-colors">
-                        <Search size={16} />
-                    </button>
-                </div>
-            )
+            render: (row) => {
+                const isPrivileged = row.role === 'Admin' || row.role === 'Super Admin' || row.role === 'System Admin' || !row.companyId;
+                const canImpersonateThisUser = canImpersonate && row.status === 'Active' && !isPrivileged;
+
+                return (
+                    <div className="flex items-center gap-2">
+                        {canImpersonateThisUser && (
+                            <button
+                                onClick={() => {
+                                    setImpersonateTargetUser(row);
+                                    setShowImpersonateModal(true);
+                                }}
+                                className="px-2.5 py-1.5 rounded-lg text-xs font-bold text-amber-700 bg-amber-50 hover:bg-amber-100 hover:text-amber-800 transition-all flex items-center gap-1 border border-amber-200"
+                                title="Impersonate user in tenant workspace"
+                            >
+                                <UserCheck size={13} />
+                                <span>Impersonate</span>
+                            </button>
+                        )}
+                        <button
+                            onClick={() => handleDeactivate(row._id, row.status)}
+                            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                                row.status === 'Active' 
+                                ? 'text-red-600 bg-red-50 hover:bg-red-100' 
+                                : 'text-emerald-600 bg-emerald-50 hover:bg-emerald-100'
+                            }`}
+                        >
+                            {row.status === 'Active' ? 'Deactivate' : 'Activate'}
+                        </button>
+                        <button className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg transition-colors">
+                            <Search size={16} />
+                        </button>
+                    </div>
+                );
+            }
         }
     ];
 
@@ -173,6 +200,16 @@ const Users = () => {
                     onPageChange={setPage}
                 />
             </div>
+
+            {/* Impersonate Modal */}
+            <ImpersonateModal
+                isOpen={showImpersonateModal}
+                onClose={() => {
+                    setShowImpersonateModal(false);
+                    setImpersonateTargetUser(null);
+                }}
+                user={impersonateTargetUser}
+            />
         </div>
     );
 };
