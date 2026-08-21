@@ -1,8 +1,56 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import api from '../api';
-import { ArrowLeft, Loader2, Save, Component } from 'lucide-react';
+import {
+    ArrowLeft,
+    Loader2,
+    Save,
+    Component,
+    Clock,
+    Calendar,
+    CalendarDays,
+    FileText,
+    Users,
+    MessageSquare,
+    BookOpen,
+    Building,
+    Building2,
+    Briefcase,
+    Folder,
+    UserCog,
+    UserPlus,
+    LogOut,
+    Mail,
+    Megaphone,
+    Receipt,
+    FileStack,
+    Network,
+    LayoutGrid
+} from 'lucide-react';
 import toast from 'react-hot-toast';
+
+const ICON_MAP = {
+    Clock,
+    Calendar,
+    CalendarDays,
+    FileText,
+    Users,
+    MessageSquare,
+    BookOpen,
+    Building,
+    Building2,
+    Briefcase,
+    Folder,
+    UserCog,
+    UserPlus,
+    LogOut,
+    Mail,
+    Megaphone,
+    Receipt,
+    FileStack,
+    Network,
+    LayoutGrid
+};
 
 const PROJECTS_MODULE_ID = 'projects';
 const PROJECT_DEPENDENCIES = ['businessUnits', 'clients'];
@@ -103,36 +151,40 @@ const Modules = () => {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                {modules.map(mod => (
-                    <div
-                        key={mod.id}
-                        onClick={() => handleToggle(mod.id)}
-                        className={`p-1 group cursor-pointer rounded-[32px] transition-all duration-300 transform hover:-translate-y-1
-                            ${mod.enabled ? 'bg-indigo-600 shadow-xl shadow-indigo-600/20' : 'bg-slate-200 hover:bg-slate-300 shadow-sm'}`}
-                    >
-                        <div className="bg-white p-7 rounded-[30px] h-full flex flex-col">
-                            <div className="flex items-start justify-between mb-8">
-                                <div className={`p-4 rounded-2xl transition-all duration-300 ${mod.enabled ? 'bg-indigo-50 text-indigo-600 ring-4 ring-indigo-50' : 'bg-slate-50 text-slate-400 group-hover:bg-slate-100'}`}>
-                                    <Component size={32} strokeWidth={2.5} />
+                {modules.map(mod => {
+                    const IconComponent = ICON_MAP[mod.icon] || Component;
+
+                    return (
+                        <div
+                            key={mod.id}
+                            onClick={() => handleToggle(mod.id)}
+                            className={`p-1 group cursor-pointer rounded-[32px] transition-all duration-300 transform hover:-translate-y-1
+                                ${mod.enabled ? 'bg-indigo-600 shadow-xl shadow-indigo-600/20' : 'bg-slate-200 hover:bg-slate-300 shadow-sm'}`}
+                        >
+                            <div className="bg-white p-7 rounded-[30px] h-full flex flex-col">
+                                <div className="flex items-start justify-between mb-8">
+                                    <div className={`p-4 rounded-2xl transition-all duration-300 ${mod.enabled ? 'bg-indigo-50 text-indigo-600 ring-4 ring-indigo-50' : 'bg-slate-50 text-slate-400 group-hover:bg-slate-100'}`}>
+                                        <IconComponent size={32} strokeWidth={2.5} />
+                                    </div>
+                                    <div className={`relative inline-block w-14 h-7 rounded-full transition-all duration-500 ${mod.enabled ? 'bg-indigo-600' : 'bg-slate-200'}`}>
+                                        <span className={`absolute left-1.5 top-1.5 bg-white w-4 h-4 rounded-full shadow-lg transition-all duration-500 ${mod.enabled ? 'translate-x-7 scale-110' : 'translate-x-0'}`} />
+                                    </div>
                                 </div>
-                                <div className={`relative inline-block w-14 h-7 rounded-full transition-all duration-500 ${mod.enabled ? 'bg-indigo-600' : 'bg-slate-200'}`}>
-                                    <span className={`absolute left-1.5 top-1.5 bg-white w-4 h-4 rounded-full shadow-lg transition-all duration-500 ${mod.enabled ? 'translate-x-7 scale-110' : 'translate-x-0'}`} />
+                                
+                                <h3 className={`text-xl font-black tracking-tight transition-colors ${mod.enabled ? 'text-indigo-900' : 'text-slate-700'}`}>{mod.label}</h3>
+                                <p className={`text-sm mt-3 font-semibold leading-relaxed transition-colors flex-1 ${mod.enabled ? 'text-indigo-600/80' : 'text-slate-400'}`}>
+                                    {mod.enabled 
+                                        ? 'This module is currently active and fully accessible to all company stakeholders.' 
+                                        : 'This module is restricted and will not be visible in the company dashboard.'}
+                                </p>
+                                
+                                <div className={`mt-8 pt-6 border-t font-black text-[10px] uppercase tracking-widest transition-colors ${mod.enabled ? 'border-indigo-50 text-indigo-500' : 'border-slate-50 text-slate-300'}`}>
+                                    {mod.enabled ? 'Priority Access' : 'Disabled'}
                                 </div>
-                            </div>
-                            
-                            <h3 className={`text-xl font-black tracking-tight transition-colors ${mod.enabled ? 'text-indigo-900' : 'text-slate-700'}`}>{mod.label}</h3>
-                            <p className={`text-sm mt-3 font-semibold leading-relaxed transition-colors flex-1 ${mod.enabled ? 'text-indigo-600/80' : 'text-slate-400'}`}>
-                                {mod.enabled 
-                                    ? 'This module is currently active and fully accessible to all company stakeholders.' 
-                                    : 'This module is restricted and will not be visible in the company dashboard.'}
-                            </p>
-                            
-                            <div className={`mt-8 pt-6 border-t font-black text-[10px] uppercase tracking-widest transition-colors ${mod.enabled ? 'border-indigo-50 text-indigo-500' : 'border-slate-50 text-slate-300'}`}>
-                                {mod.enabled ? 'Priority Access' : 'Disabled'}
                             </div>
                         </div>
-                    </div>
-                ))}
+                    );
+                })}
             </div>
         </div>
     );
