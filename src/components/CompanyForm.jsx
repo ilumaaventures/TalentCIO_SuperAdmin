@@ -55,6 +55,7 @@ const CompanyForm = ({ isOpen, onClose, company = null, onSuccess }) => {
         try {
             const payload = {
                 ...formData,
+                planId: formData.planId || null,
                 allowedDomains: formData.allowedDomains.split(',').map(d => d.trim()).filter(d => d !== '')
             };
             if (!company) {
