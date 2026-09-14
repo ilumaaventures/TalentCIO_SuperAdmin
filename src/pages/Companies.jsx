@@ -92,13 +92,20 @@ const Companies = () => {
                 <div className="flex items-center gap-2" onClick={e => e.stopPropagation()}>
                     <button
                         onClick={() => navigate(`/companies/${row._id}`)}
-                        className="px-3 py-1.5 rounded-lg text-xs font-bold text-indigo-600 bg-indigo-50 hover:bg-indigo-100 transition-all"
+                        className="px-3 py-1.5 rounded-lg text-xs font-bold text-indigo-600 bg-indigo-50 hover:bg-indigo-100 transition-all cursor-pointer"
                     >
                         Review
                     </button>
                     <button
+                        onClick={() => navigate(`/companies/${row._id}/modules`)}
+                        className="px-3 py-1.5 rounded-lg text-xs font-bold text-purple-700 bg-purple-50 hover:bg-purple-100 transition-all cursor-pointer border border-purple-200/60"
+                        title="Configure Module Permissions"
+                    >
+                        Modules
+                    </button>
+                    <button
                         onClick={() => { setEditingCompany(row); setIsFormOpen(true); }}
-                        className="px-3 py-1.5 rounded-lg text-xs font-bold text-slate-600 bg-slate-50 hover:bg-slate-100 transition-all"
+                        className="px-3 py-1.5 rounded-lg text-xs font-bold text-slate-600 bg-slate-50 hover:bg-slate-100 transition-all cursor-pointer"
                     >
                         Edit
                     </button>
