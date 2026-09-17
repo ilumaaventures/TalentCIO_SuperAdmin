@@ -57,6 +57,8 @@ const CompanySettings = () => {
         overtimeRules: '',
         careers: {
             enableResourceGatewayPublishing: false,
+            enableCrossTenantSharing: false,
+            enableClientPortalAccess: false,
         },
         attendance: {
             weeklyOff: ['Saturday', 'Sunday'],
@@ -947,6 +949,66 @@ const CompanySettings = () => {
                                             />
                                             <div className={`w-10 h-6 rounded-full transition-colors ${settings.careers.enableResourceGatewayPublishing ? 'bg-emerald-600' : 'bg-slate-300'}`}></div>
                                             <div className={`absolute top-1 left-1 bg-white w-4 h-4 rounded-full transition-transform ${settings.careers.enableResourceGatewayPublishing ? 'translate-x-4' : ''}`}></div>
+                                        </div>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div className="rounded-xl border border-indigo-100 bg-indigo-50/70 p-4">
+                                <div className="flex items-start justify-between gap-4">
+                                    <div>
+                                        <p className="text-xs font-bold uppercase tracking-wider text-indigo-700">Cross-Tenant Sharing</p>
+                                        <h4 className="mt-1 text-sm font-semibold text-slate-800">Allow this company to share requisitions across workspaces</h4>
+                                        <p className="mt-1 text-xs leading-5 text-slate-500">
+                                            When enabled, live requisition candidate data from this company can be shared with other company workspaces (e.g. rg.talentcio.in).
+                                        </p>
+                                    </div>
+                                    <label className="flex items-center gap-3 cursor-pointer group shrink-0">
+                                        <div className="relative">
+                                            <input
+                                                type="checkbox"
+                                                className="sr-only"
+                                                checked={Boolean(settings.careers?.enableCrossTenantSharing)}
+                                                onChange={e => setSettings({
+                                                    ...settings,
+                                                    careers: {
+                                                        ...settings.careers,
+                                                        enableCrossTenantSharing: e.target.checked
+                                                    }
+                                                })}
+                                            />
+                                            <div className={`w-10 h-6 rounded-full transition-colors ${settings.careers?.enableCrossTenantSharing ? 'bg-indigo-600' : 'bg-slate-300'}`}></div>
+                                            <div className={`absolute top-1 left-1 bg-white w-4 h-4 rounded-full transition-transform ${settings.careers?.enableCrossTenantSharing ? 'translate-x-4' : ''}`}></div>
+                                        </div>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div className="rounded-xl border border-blue-100 bg-blue-50/70 p-4">
+                                <div className="flex items-start justify-between gap-4">
+                                    <div>
+                                        <p className="text-xs font-bold uppercase tracking-wider text-blue-700">Client Portal Access</p>
+                                        <h4 className="mt-1 text-sm font-semibold text-slate-800">Allow this company to share requisitions with Client Portal</h4>
+                                        <p className="mt-1 text-xs leading-5 text-slate-500">
+                                            When enabled, internal recruiters can grant clients access to review requisitions and candidate workflows from the client portal.
+                                        </p>
+                                    </div>
+                                    <label className="flex items-center gap-3 cursor-pointer group shrink-0">
+                                        <div className="relative">
+                                            <input
+                                                type="checkbox"
+                                                className="sr-only"
+                                                checked={Boolean(settings.careers?.enableClientPortalAccess)}
+                                                onChange={e => setSettings({
+                                                    ...settings,
+                                                    careers: {
+                                                        ...settings.careers,
+                                                        enableClientPortalAccess: e.target.checked
+                                                    }
+                                                })}
+                                            />
+                                            <div className={`w-10 h-6 rounded-full transition-colors ${settings.careers?.enableClientPortalAccess ? 'bg-blue-600' : 'bg-slate-300'}`}></div>
+                                            <div className={`absolute top-1 left-1 bg-white w-4 h-4 rounded-full transition-transform ${settings.careers?.enableClientPortalAccess ? 'translate-x-4' : ''}`}></div>
                                         </div>
                                     </label>
                                 </div>
