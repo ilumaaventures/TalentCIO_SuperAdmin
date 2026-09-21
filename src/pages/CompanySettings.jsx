@@ -59,6 +59,7 @@ const CompanySettings = () => {
             enableResourceGatewayPublishing: false,
             enableCrossTenantSharing: false,
             enableClientPortalAccess: false,
+            enableUnlistedApplications: false,
         },
         attendance: {
             weeklyOff: ['Saturday', 'Sunday'],
@@ -1009,6 +1010,36 @@ const CompanySettings = () => {
                                             />
                                             <div className={`w-10 h-6 rounded-full transition-colors ${settings.careers?.enableClientPortalAccess ? 'bg-blue-600' : 'bg-slate-300'}`}></div>
                                             <div className={`absolute top-1 left-1 bg-white w-4 h-4 rounded-full transition-transform ${settings.careers?.enableClientPortalAccess ? 'translate-x-4' : ''}`}></div>
+                                        </div>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div className="rounded-xl border border-amber-100 bg-amber-50/70 p-4">
+                                <div className="flex items-start justify-between gap-4">
+                                    <div>
+                                        <p className="text-xs font-bold uppercase tracking-wider text-amber-700">Opportunity Board Applications</p>
+                                        <h4 className="mt-1 text-sm font-semibold text-slate-800">Allow this company to view and transfer unlisted applications</h4>
+                                        <p className="mt-1 text-xs leading-5 text-slate-500">
+                                            When enabled, recruiters in this workspace can access general and unlisted candidate applications from the Opportunity Board in their Talent Acquisition Applications tab and transfer them to active requisitions.
+                                        </p>
+                                    </div>
+                                    <label className="flex items-center gap-3 cursor-pointer group shrink-0">
+                                        <div className="relative">
+                                            <input
+                                                type="checkbox"
+                                                className="sr-only"
+                                                checked={Boolean(settings.careers?.enableUnlistedApplications)}
+                                                onChange={e => setSettings({
+                                                    ...settings,
+                                                    careers: {
+                                                        ...settings.careers,
+                                                        enableUnlistedApplications: e.target.checked
+                                                    }
+                                                })}
+                                            />
+                                            <div className={`w-10 h-6 rounded-full transition-colors ${settings.careers?.enableUnlistedApplications ? 'bg-amber-600' : 'bg-slate-300'}`}></div>
+                                            <div className={`absolute top-1 left-1 bg-white w-4 h-4 rounded-full transition-transform ${settings.careers?.enableUnlistedApplications ? 'translate-x-4' : ''}`}></div>
                                         </div>
                                     </label>
                                 </div>
