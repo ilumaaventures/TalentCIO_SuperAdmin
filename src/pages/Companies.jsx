@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 import api from '../api';
 import DataTable from '../components/DataTable';
 import CompanyForm from '../components/CompanyForm';
-import { Plus, Search, Building2, MoreVertical, Settings } from 'lucide-react';
+import { Plus, Search, Building2, MoreVertical, Settings, Eye, ShieldCheck, Pencil, Ban, CheckCircle2 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 const Companies = () => {
@@ -14,8 +15,43 @@ const Companies = () => {
     const [search, setSearch] = useState('');
     const [isFormOpen, setIsFormOpen] = useState(false);
     const [editingCompany, setEditingCompany] = useState(null);
+    const [activeMenu, setActiveMenu] = useState(null);
+    const [menuPosition, setMenuPosition] = useState({});
 
     const navigate = useNavigate();
+
+    const toggleMenu = (event, companyId) => {
+        event.stopPropagation();
+        if (activeMenu === companyId) {
+            setActiveMenu(null);
+            return;
+        }
+        const rect = event.currentTarget.getBoundingClientRect();
+        const spaceBelow = window.innerHeight - rect.bottom;
+        const menuHeight = 230;
+        const position = {
+            right: Math.max(10, window.innerWidth - rect.right),
+        };
+        if (spaceBelow < menuHeight && rect.top > menuHeight) {
+            position.bottom = window.innerHeight - rect.top + 6;
+        } else {
+            position.top = rect.bottom + 6;
+        }
+        setMenuPosition(position);
+        setActiveMenu(companyId);
+    };
+
+    useEffect(() => {
+        const handleClickOutside = () => setActiveMenu(null);
+        window.addEventListener('click', handleClickOutside);
+        window.addEventListener('scroll', handleClickOutside, true);
+        window.addEventListener('resize', handleClickOutside);
+        return () => {
+            window.removeEventListener('click', handleClickOutside);
+            window.removeEventListener('scroll', handleClickOutside, true);
+            window.removeEventListener('resize', handleClickOutside);
+        };
+    }, []);
 
     const fetchCompanies = async () => {
         setLoading(true);
@@ -89,35 +125,104 @@ const Companies = () => {
             header: 'Actions',
             accessor: '_id',
             render: (row) => (
-                <div className="flex items-center gap-2" onClick={e => e.stopPropagation()}>
+                <div className="flex items-center justify-center relative" onClick={(e) => e.stopPropagation()}>
                     <button
-                        onClick={() => navigate(`/companies/${row._id}`)}
-                        className="px-3 py-1.5 rounded-lg text-xs font-bold text-indigo-600 bg-indigo-50 hover:bg-indigo-100 transition-all cursor-pointer"
+                        type="button"
+                        onClick={(e) => toggleMenu(e, row._id)}
+                        className={`p-2 rounded-xl transition-all cursor-pointer ${
+                            activeMenu === row._id
+                                ? 'bg-indigo-50 text-indigo-600 shadow-xs'
+                                : 'text-slate-400 hover:text-slate-700 hover:bg-slate-100'
+                        }`}
+                        title="Actions"
                     >
-                        Review
+                        <MoreVertical size={18} />
                     </button>
-                    <button
-                        onClick={() => navigate(`/companies/${row._id}/modules`)}
-                        className="px-3 py-1.5 rounded-lg text-xs font-bold text-purple-700 bg-purple-50 hover:bg-purple-100 transition-all cursor-pointer border border-purple-200/60"
-                        title="Configure Module Permissions"
-                    >
-                        Modules
-                    </button>
-                    <button
-                        onClick={() => { setEditingCompany(row); setIsFormOpen(true); }}
-                        className="px-3 py-1.5 rounded-lg text-xs font-bold text-slate-600 bg-slate-50 hover:bg-slate-100 transition-all cursor-pointer"
-                    >
-                        Edit
-                    </button>
-                    <button
-                        onClick={() => handleToggleStatus(row._id, row.status)}
-                        className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${row.status === 'Active'
-                                ? 'text-red-600 bg-red-50 hover:bg-red-100'
-                                : 'text-emerald-600 bg-emerald-50 hover:bg-emerald-100'
-                            }`}
-                    >
-                        {row.status === 'Active' ? 'Suspend' : 'Resume'}
-                    </button>
+
+                    {activeMenu === row._id && typeof document !== 'undefined' && createPortal(
+                        <div
+                            className="fixed z-[9999] w-48 bg-white rounded-2xl shadow-xl border border-slate-200 py-1.5 animate-in fade-in zoom-in-95 duration-100"
+                            style={menuPosition}
+                            onClick={(e) => e.stopPropagation()}
+                        >
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    setActiveMenu(null);
+                                    navigate(`/companies/${row._id}`);
+                                }}
+                                className="w-full flex items-center gap-2.5 px-4 py-2.5 text-xs font-semibold text-slate-700 hover:bg-indigo-50 hover:text-indigo-700 transition-colors text-left cursor-pointer"
+                            >
+                                <Eye size={15} className="text-indigo-600" />
+                                <span>Review</span>
+                            </button>
+
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    setActiveMenu(null);
+                                    navigate(`/companies/${row._id}/modules`);
+                                }}
+                                className="w-full flex items-center gap-2.5 px-4 py-2.5 text-xs font-semibold text-slate-700 hover:bg-purple-50 hover:text-purple-700 transition-colors text-left cursor-pointer"
+                            >
+                                <ShieldCheck size={15} className="text-purple-600" />
+                                <span>Modules</span>
+                            </button>
+
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    setActiveMenu(null);
+                                    navigate(`/companies/${row._id}/settings`);
+                                }}
+                                className="w-full flex items-center gap-2.5 px-4 py-2.5 text-xs font-semibold text-slate-700 hover:bg-amber-50 hover:text-amber-700 transition-colors text-left cursor-pointer"
+                            >
+                                <Settings size={15} className="text-amber-600" />
+                                <span>Settings</span>
+                            </button>
+
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    setActiveMenu(null);
+                                    setEditingCompany(row);
+                                    setIsFormOpen(true);
+                                }}
+                                className="w-full flex items-center gap-2.5 px-4 py-2.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 hover:text-slate-900 transition-colors text-left cursor-pointer"
+                            >
+                                <Pencil size={15} className="text-slate-500" />
+                                <span>Edit</span>
+                            </button>
+
+                            <div className="border-t border-slate-100 my-1" />
+
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    setActiveMenu(null);
+                                    handleToggleStatus(row._id, row.status);
+                                }}
+                                className={`w-full flex items-center gap-2.5 px-4 py-2.5 text-xs font-semibold transition-colors text-left cursor-pointer ${
+                                    row.status === 'Active'
+                                        ? 'text-red-600 hover:bg-red-50'
+                                        : 'text-emerald-600 hover:bg-emerald-50'
+                                }`}
+                            >
+                                {row.status === 'Active' ? (
+                                    <>
+                                        <Ban size={15} className="text-red-500" />
+                                        <span>Suspend</span>
+                                    </>
+                                ) : (
+                                    <>
+                                        <CheckCircle2 size={15} className="text-emerald-500" />
+                                        <span>Resume</span>
+                                    </>
+                                )}
+                            </button>
+                        </div>,
+                        document.body
+                    )}
                 </div>
             )
         }
