@@ -33,7 +33,9 @@ import {
     Check,
     X,
     Sparkles,
-    Link2
+    Link2,
+    Award,
+    Target
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
@@ -59,7 +61,9 @@ const ICON_MAP = {
     Network,
     LayoutGrid,
     TrendingUp,
-    ShieldCheck
+    ShieldCheck,
+    Award,
+    Target
 };
 
 const PROJECTS_MODULE_ID = 'projects';
