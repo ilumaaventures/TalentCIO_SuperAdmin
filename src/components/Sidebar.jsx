@@ -5,16 +5,22 @@ import { useAuth } from '../context/AuthContext';
 
 const NAV_ITEMS = [
     { label: 'Dashboard', icon: LayoutDashboard, path: '/' },
-    { label: 'Companies', icon: Building2, path: '/companies' },
-    { label: 'Subscriptions', icon: Package, path: '/plans' },
-    { label: 'Global Users', icon: Users, path: '/users' },
-    { label: 'Analytics', icon: Activity, path: '/analytics' },
-    { label: 'Activity Logs', icon: FileText, path: '/logs' },
+    { label: 'Companies', icon: Building2, path: '/companies', permission: 'manageCompanies' },
+    { label: 'Subscriptions', icon: Package, path: '/plans', permission: 'managePlans' },
+    { label: 'Global Users', icon: Users, path: '/users', permission: 'manageUsers' },
+    { label: 'Analytics', icon: Activity, path: '/analytics', permission: 'viewAnalytics' },
+    { label: 'Activity Logs', icon: FileText, path: '/logs', permission: 'viewLogs' },
     { label: 'Settings', icon: Settings, path: '/settings' },
 ];
 
 const Sidebar = () => {
     const { logout, admin } = useAuth();
+
+    const allowedNavItems = NAV_ITEMS.filter((item) => {
+        if (!item.permission) return true;
+        if (admin?.role === 'Super Admin') return true;
+        return Boolean(admin?.permissions?.[item.permission]);
+    });
 
     return (
         <aside className="w-64 bg-slate-900 border-r border-slate-800 flex flex-col h-screen font-sans text-slate-300">
@@ -30,7 +36,7 @@ const Sidebar = () => {
             <div className="p-4">
                 <div className="px-3 py-2 text-xs font-semibold uppercase tracking-wider text-slate-500 mb-2">Superspace</div>
                 <nav className="space-y-1">
-                    {NAV_ITEMS.map((item) => (
+                    {allowedNavItems.map((item) => (
                         <NavLink
                             key={item.path}
                             to={item.path}
