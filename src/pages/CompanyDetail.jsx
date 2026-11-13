@@ -35,6 +35,7 @@ const CompanyDetail = () => {
 
     const payrollIntegration = company.settings?.payrollIntegration || {};
     const isPayrollEnabled = payrollIntegration.enabled === true;
+    const isPayrollModuleEnabled = (company.enabledModules || []).includes('payroll');
 
     return (
         <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
@@ -92,15 +93,30 @@ const CompanyDetail = () => {
                     </div>
 
                     <div className="bg-white rounded-[32px] shadow-sm border border-slate-100 p-10">
-                        <h3 className="text-xl font-black text-slate-800 mb-8 flex items-center gap-3">
-                            <ShieldCheck className="text-emerald-500" size={24} strokeWidth={2.5} /> Payroll Integration
-                        </h3>
+                        <div className="flex items-center justify-between mb-8">
+                            <h3 className="text-xl font-black text-slate-800 flex items-center gap-3">
+                                <ShieldCheck className="text-emerald-500" size={24} strokeWidth={2.5} /> Payroll & Integration
+                            </h3>
+                            <button
+                                onClick={() => navigate(`/companies/${id}/modules`)}
+                                className="text-xs font-bold text-indigo-600 hover:text-indigo-800 bg-indigo-50 hover:bg-indigo-100 px-3 py-1.5 rounded-xl transition-all cursor-pointer border border-indigo-200/60"
+                            >
+                                Configure Modules
+                            </button>
+                        </div>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-y-8 gap-x-12">
                             <div>
-                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5">Sync Status</p>
+                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5">Payroll Module Status</p>
+                                <span className={`inline-flex items-center px-4 py-1 rounded-full text-[10px] font-black uppercase tracking-wider mt-2 ${isPayrollModuleEnabled ? 'bg-indigo-50 text-indigo-600 border border-indigo-100' : 'bg-slate-100 text-slate-600 border border-slate-200'}`}>
+                                    <span className={`w-1.5 h-1.5 rounded-full mr-2 ${isPayrollModuleEnabled ? 'bg-indigo-500' : 'bg-slate-400'}`}></span>
+                                    {isPayrollModuleEnabled ? 'Module Enabled' : 'Module Disabled'}
+                                </span>
+                            </div>
+                            <div>
+                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5">Sync Status (API / Webhook)</p>
                                 <span className={`inline-flex items-center px-4 py-1 rounded-full text-[10px] font-black uppercase tracking-wider mt-2 ${isPayrollEnabled ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' : 'bg-slate-100 text-slate-600 border border-slate-200'}`}>
                                     <span className={`w-1.5 h-1.5 rounded-full mr-2 ${isPayrollEnabled ? 'bg-emerald-500' : 'bg-slate-400'}`}></span>
-                                    {isPayrollEnabled ? 'Enabled' : 'Disabled'}
+                                    {isPayrollEnabled ? 'Sync Enabled' : 'Sync Disabled'}
                                 </span>
                             </div>
                             <div>
@@ -111,7 +127,7 @@ const CompanyDetail = () => {
                                 <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5">Payload Encryption</p>
                                 <p className="text-sm font-bold text-slate-800">{payrollIntegration.encryptPayloads ? 'Enabled' : 'Disabled'}</p>
                             </div>
-                            <div>
+                            <div className="md:col-span-2">
                                 <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5">Webhook URL</p>
                                 <p className="text-sm font-bold text-slate-800 break-all">{payrollIntegration.webhookUrl || 'Not configured'}</p>
                             </div>
